@@ -47,17 +47,18 @@ import java.util.PriorityQueue;
  *
  */
 
+import java.util.*;
+
 public class Solution7 {
 
     public String smallestStringWithSwaps(String s, List<List<Integer>> pairs) {
-
         if (pairs.size() <= 1) {
             return s;
         }
 
         // 第 1 步：将任意交换的结点对输入并查集
         int len = s.length();
-        UnionFind unionFind = new UnionFind(len-1);
+        UnionFind unionFind = new UnionFind(len);
         for (List<Integer> pair : pairs) {
             int index1 = pair.get(0);
             int index2 = pair.get(1);
@@ -67,17 +68,17 @@ public class Solution7 {
         // 第 2 步：构建映射关系
         char[] charArray = s.toCharArray();
         // key：连通分量的代表元，value：同一个连通分量的字符集合（保存在一个优先队列中）
-        Map<Integer, PriorityQueue<Character>> hashMap = new HashMap<>(len);
-        for (int i = 0; i < len; i++)
+        Map<Integer, PriorityQueue<Character>> hashMap = new HashMap<>();
+        for (int i = 0; i < len; i++) {
             int root = unionFind.find(i);
             hashMap.computeIfAbsent(root, key -> new PriorityQueue<>()).offer(charArray[i]);
+        }
 
         // 第 3 步：重组字符串
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < len; i++) {
             int root = unionFind.find(i);
             stringBuilder.append(hashMap.get(root).poll());
-            stringBuilder.append(" ");
         }
         return stringBuilder.toString();
     }
@@ -85,9 +86,6 @@ public class Solution7 {
     private class UnionFind {
 
         private int[] parent;
-        /**
-         * 以 i 为根结点的子树的高度（引入了路径压缩以后该定义并不准确）
-         */
         private int[] rank;
 
         public UnionFind(int n) {
@@ -108,13 +106,10 @@ public class Solution7 {
 
             if (rank[rootX] == rank[rootY]) {
                 parent[rootX] = rootY;
-                // 此时以 rootY 为根结点的树的高度仅加了 1
                 rank[rootY]++;
             } else if (rank[rootX] < rank[rootY]) {
                 parent[rootX] = rootY;
-                // 此时以 rootY 为根结点的树的高度不变
             } else {
-                // 同理，此时以 rootX 为根结点的树的高度不变
                 parent[rootY] = rootX;
             }
         }
@@ -126,4 +121,17 @@ public class Solution7 {
             return parent[x];
         }
     }
+
+    public static void main(String[] args) {
+        Solution7 solution7 = new Solution7();
+        List<List<Integer>> pairs1 = Arrays.asList(Arrays.asList(0, 3), Arrays.asList(1, 2));
+        System.out.println(solution7.smallestStringWithSwaps("dcab", pairs1)); // Output: "bacd"
+
+        List<List<Integer>> pairs2 = Arrays.asList(Arrays.asList(0, 3), Arrays.asList(1, 2), Arrays.asList(0, 2));
+        System.out.println(solution7.smallestStringWithSwaps("dcab", pairs2)); // Output: "abcd"
+
+        List<List<Integer>> pairs3 = Arrays.asList(Arrays.asList(0, 1), Arrays.asList(1, 2));
+        System.out.println(solution7.smallestStringWithSwaps("cba", pairs3)); // Output: "abc"
+    }
 }
+
